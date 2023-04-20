@@ -2,19 +2,23 @@ import logging
 from socket import socket, AF_INET, SOCK_STREAM
 
 from src.RequestHandler import RequestHandler
+from src.Router import Router
 
 
 class Server:
     __socket: socket
     __port: int
     __clients: list[RequestHandler] = []
+    __route_handler: Router
 
-    def __init__(self) -> None:
+    def __init__(self, route_handler: Router) -> None:
         self.__socket = socket(AF_INET, SOCK_STREAM)
+        self.__route_handler = route_handler
 
     def listen(self, port: int) -> None:
         self.__port = port
 
+        # just makes sure app starts if the selected port was reserved before
         while True:
             try:
                 self.__socket.bind(('127.0.0.1', self.__port))
@@ -26,12 +30,13 @@ class Server:
 
     def start(self):
         logging.info(f"\n🚀 Server listening on port {self.__port}...\n")
-        try:
-            while True:
+        while True:
+            try:
                 (client_socket, _) = self.__socket.accept()
-                self.__clients.append(RequestHandler(client_socket))
-        except KeyboardInterrupt:
-            logging.info("You successfully stopped the server.")
-            raise
-        except Exception as ex:
-            logging.error(f"Something went wrong details:\n {ex}")
+                self.__clients.append(RequestHandler(
+                    client_socket, self.__route_handler))
+            except KeyboardInterrupt:
+                logging.info("You successfully stopped the server.")
+                break
+            except Exception as ex:
+                logging.error(f"Something went wrong details:\n {ex}")

@@ -1,17 +1,19 @@
 import json
 import logging
+from urllib.parse import urlparse, parse_qs
 from socket import socket
 from threading import Thread
-from time import sleep
 
 
 from src.HttpRequest import HttpRequest
+from src.Router import Router
 
 
 class RequestHandler:
     __thread: Thread
     __socket: socket
     __req: HttpRequest
+    __route_handler: Router
 
     def __parser(self, data: bytes):
         (headers, body) = tuple(data.split(b"\r\n\r\n"))
@@ -20,7 +22,11 @@ class RequestHandler:
 
         splitted_headers = headers.split(b"\r\n")
 
-        method = splitted_headers[0].decode().split(" ")[0].upper()
+        req_info = splitted_headers[0].decode().split(" ")
+
+        method = req_info[0].upper()
+
+        url = urlparse(req_info[1] or "")
 
         parsed_headers: dict[str, str] = {}
 
@@ -38,9 +44,17 @@ class RequestHandler:
         if content_type_val == 'application/json':
             decoded_body = json.loads(decoded_body)
 
-        self.__req = HttpRequest(method, parsed_headers, decoded_body)
+        self.__req = HttpRequest(method, url.path, parse_qs(
+            url.query), parsed_headers, decoded_body)
 
         return self.__req
+
+    def __init__(self, socket: socket, route_handler: Router) -> None:
+        self.__socket = socket
+        self.__thread = Thread(target=self.handler, daemon=True)
+        self.__route_handler = route_handler
+
+        self.__thread.start()
 
     def handler(self):
         try:
@@ -49,20 +63,13 @@ class RequestHandler:
             while req := self.__socket.recv(4096):
                 data += req
 
-                sleep(0.001)
-
                 if len(req) < 4096:
                     break
 
-            parsed = self.__parser(data)
+            req = self.__parser(data)
 
-            print(parsed)
+            self.__route_handler.matcher(req, self.__socket)
 
-        except:
+        except Exception as ex:
             logging.error(
-                "Something went wrong while trying to handle http request")
-
-    def __init__(self, socket: socket) -> None:
-        self.__socket = socket
-        self.__thread = Thread(target=self.handler)
-        self.__thread.start()
+                f"Something went wrong while trying to handle http request:\n {ex}")
