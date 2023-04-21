@@ -1,6 +1,5 @@
 import os
 import logging
-from pathlib import Path
 from dotenv import load_dotenv
 
 from src.PathScanner import PathScanner
@@ -19,19 +18,19 @@ port = int(os.getenv("PORT", 5000))
 
 router = Router()
 
-should_server = input("do you want to run as server: ").lower() == 'y'
-
-path = ''
-
-if should_server:
-    path = fr"{input('Which path of you computer do you want to share: ')}"
-
-scanner = PathScanner()
+path = fr"{input('Which path of your computer do you want to share (path should be absolute): ')}"
 
 
-@router.get('/get-dir-list')
+@router.get('/list')
 def get_dir_list(req: HttpRequest):
-    scanner.set_path(path)
+    prefix = req.get_query_param('prefix')
+
+    real_path = path
+
+    if prefix:
+        real_path = prefix[0]
+
+    scanner = PathScanner(real_path)
 
     return scanner.scan()
 
@@ -41,14 +40,20 @@ def get_path(req: HttpRequest):
     return {"path": path}
 
 
-@router.put('/path')
-def set_path(req: HttpRequest):
-    scanner.set_path(req.get_body()['path'])
-    return {"path": path}
+@router.get('/file')
+def send_file(req: HttpRequest):
+    path = req.get_query_param('path')
+
+    if not path:
+        return {"message": "should feed the url with path query param"}
+
+    path = path[0]
+
+    with open(path, 'rb') as file:
+        return file.read()
 
 
 server = Server(router)
 
-if should_server:
-    server.listen(port)
-    server.start()
+server.listen(port)
+server.start()
