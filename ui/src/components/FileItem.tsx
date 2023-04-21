@@ -1,43 +1,38 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 
 import { TFileItem } from "../api/getList";
-import axiosInstance from "../api/axiosInstance";
+import { useQuery } from "@tanstack/react-query";
+import getFileContent from "../api/getFileContent";
 
 interface FileItemProps extends TFileItem {
   setPrefix: (prefix: string) => void;
 }
 
 const FileItem: React.FC<FileItemProps> = ({ name, path, type, setPrefix }) => {
-  const downloadLinkRef = useRef<HTMLAnchorElement>(null);
+  const anchorRef = useRef<HTMLAnchorElement>(null);
 
-  const handleDownload = async () => {
-    if (type === "DIR") return setPrefix(path);
+  const { data: res } = useQuery(["file-content", name], () =>
+    getFileContent(path)
+  );
 
-    const res = await axiosInstance.get(
-      `http://localhost:5500/file?path=${path}`
-    );
+  // normally I shouldn't use the 'useEffect' hook but there was a weird
+  // and unsolvable bug with the event driven way so I switched
+  useEffect(() => {
+    if (type === "DIR" || !res) return;
 
-    const fileBlob = new Blob([res.data], {
-      type: res.headers["content-type"]?.toString(),
-    });
+    if (anchorRef.current) {
+      anchorRef.current.href = `data:${
+        res.headers["content-type"]
+      };charset=utf-8,${encodeURIComponent(res.data)}`;
 
-    if (downloadLinkRef.current) {
-      downloadLinkRef.current.href = URL.createObjectURL(fileBlob);
-
-      console.log(downloadLinkRef.current.href);
-
-      downloadLinkRef.current.download = name;
-
-      downloadLinkRef.current.click();
-
-      URL.revokeObjectURL(downloadLinkRef.current.href);
+      anchorRef.current.download = name;
     }
-  };
+  }, [res, type, name]);
 
   return (
     <div
+      onClick={() => type === "DIR" && setPrefix(path)}
       className="flex items-center gap-3 cursor-pointer"
-      onClick={() => handleDownload()}
     >
       {type === "DIR" ? (
         <svg
@@ -70,12 +65,7 @@ const FileItem: React.FC<FileItemProps> = ({ name, path, type, setPrefix }) => {
           />
         </svg>
       )}
-      <p>{name}</p>
-      {type === "FILE" && (
-        <div className="">
-          <a ref={downloadLinkRef}>Download</a>
-        </div>
-      )}
+      <a ref={anchorRef}>{name}</a>
     </div>
   );
 };
