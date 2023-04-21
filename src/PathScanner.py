@@ -20,6 +20,8 @@ class PathScanner:
         self.__path = path
 
     def scan(self) -> list[PathItem]:
+        self.__list = []
+
         if not self.__path:
             raise ValueError("should set path at some point.")
 
