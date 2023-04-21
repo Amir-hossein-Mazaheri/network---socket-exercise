@@ -1,6 +1,8 @@
 {
     "cSpell.words": [
         "aiofiles",
-        "dotenv"
+        "dotenv",
+        "levelname",
+        "tanstack"
     ]
 }
