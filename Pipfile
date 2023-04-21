@@ -6,6 +6,8 @@ name = "pypi"
 [packages]
 aiofiles = "*"
 python-dotenv = "*"
+python-magic = "*"
+python-magic-bin = "*"
 
 [dev-packages]
 autopep8 = "*"
