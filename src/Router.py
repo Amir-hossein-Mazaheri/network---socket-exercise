@@ -1,4 +1,5 @@
 import json
+from magic import Magic
 from typing import TypeAlias, Callable
 from socket import socket
 
@@ -54,7 +55,17 @@ class Router:
                 if type(value) != bytes:
                     body = json.dumps(value).encode()
 
-                socket.send(b"HTTP/1.1 200 OK\n\n")
+                socket.send(b"HTTP/1.1 200 OK\r\n")
+
+                if type(value) == bytes:
+                    mime = Magic(mime=True)
+
+                    socket.send(
+                        ("Content-Type:" + mime.from_buffer(body) + "\r\n").encode())
+                else:
+                    socket.send(b"Content-Type:application/json\r\n")
+
+                socket.send(b"Access-Control-Allow-Origin: *\r\n\r\n")
                 socket.send(body)
 
                 socket.close()
