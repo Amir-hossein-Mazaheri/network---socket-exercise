@@ -26,18 +26,23 @@ class PathScanner:
             raise ValueError("should set path at some point.")
 
         for path_item in os.listdir(self.__path):
-            # just makes sure that hidden directories are not exposed
-            if path_item.startswith('.'):
+            try:
+                # just makes sure that hidden directories are not exposed
+                if path_item.startswith('.'):
+                    continue
+
+                path = os.path.join(self.__path, path_item)
+
+                type = PathItemType.DIR if os.path.isdir(
+                    path) else PathItemType.FILE
+
+                self.__list.append({
+                    "name": path_item,
+                    "path": path,
+                    "type": type
+                })
+            except PermissionError:
                 continue
-
-            type = PathItemType.DIR if os.path.isdir(
-                path_item) else PathItemType.FILE
-
-            self.__list.append({
-                "name": path_item,
-                "path": os.path.join(self.__path, path_item),
-                "type": type
-            })
 
         return self.__list
 
