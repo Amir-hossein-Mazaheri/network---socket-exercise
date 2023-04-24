@@ -5,10 +5,10 @@ import { TFileItem } from "../api/getList";
 import getFile from "../api/getFile";
 
 interface FileItemProps extends TFileItem {
-  setPrefix: (prefix: string) => void;
+  onClick: (prefix: string) => void;
 }
 
-const FileItem: React.FC<FileItemProps> = ({ name, path, type, setPrefix }) => {
+const FileItem: React.FC<FileItemProps> = ({ name, path, type, onClick }) => {
   const anchorRef = useRef<HTMLAnchorElement>(null);
 
   const { data: res } = useQuery(["file-content", name], () => getFile(path));
@@ -27,7 +27,7 @@ const FileItem: React.FC<FileItemProps> = ({ name, path, type, setPrefix }) => {
 
   return (
     <div
-      onClick={() => type === "DIR" && setPrefix(path)}
+      onClick={() => type === "DIR" && onClick(path)}
       className="flex items-center gap-3 cursor-pointer"
     >
       {type === "DIR" ? (

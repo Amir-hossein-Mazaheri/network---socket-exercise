@@ -52,17 +52,13 @@ const FileExplorer = () => {
         <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-6">
           {/* just simulate native os go back directory but it just pop from stack */}
           {!!previousPaths.length && (
-            <FileItem name=".." type="DIR" path=".." setPrefix={handleGoBack} />
+            <FileItem name=".." type="DIR" path=".." onClick={handleGoBack} />
           )}
           {!!error ? (
             <p>Something went wrong</p>
           ) : (
             data?.map((item) => (
-              <FileItem
-                key={item.path}
-                {...item}
-                setPrefix={handleChangePath}
-              />
+              <FileItem key={item.path} {...item} onClick={handleChangePath} />
             ))
           )}
         </div>
