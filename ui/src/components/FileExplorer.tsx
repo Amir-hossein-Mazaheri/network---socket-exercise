@@ -46,15 +46,27 @@ const FileExplorer = () => {
         <h1 className="font-bold text-3xl">File Explorer</h1>
       </div>
 
-      <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-6">
-        {/* just simulate native os go back directory but it just change pop from stack */}
-        {!!previousPaths.length && (
-          <FileItem name=".." type="DIR" path=".." setPrefix={handleGoBack} />
-        )}
-        {data?.map((item) => (
-          <FileItem key={item.path} {...item} setPrefix={handleChangePath} />
-        ))}
-      </div>
+      {isLoading ? (
+        <p className="font-bold text-lg text-red-500">Loading Please Wait...</p>
+      ) : (
+        <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-6">
+          {/* just simulate native os go back directory but it just pop from stack */}
+          {!!previousPaths.length && (
+            <FileItem name=".." type="DIR" path=".." setPrefix={handleGoBack} />
+          )}
+          {!!error ? (
+            <p>Something went wrong</p>
+          ) : (
+            data?.map((item) => (
+              <FileItem
+                key={item.path}
+                {...item}
+                setPrefix={handleChangePath}
+              />
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 };

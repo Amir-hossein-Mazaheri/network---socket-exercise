@@ -1,8 +1,8 @@
 import React, { useEffect, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 import { TFileItem } from "../api/getList";
-import { useQuery } from "@tanstack/react-query";
-import getFileContent from "../api/getFileContent";
+import getFile from "../api/getFile";
 
 interface FileItemProps extends TFileItem {
   setPrefix: (prefix: string) => void;
@@ -11,22 +11,18 @@ interface FileItemProps extends TFileItem {
 const FileItem: React.FC<FileItemProps> = ({ name, path, type, setPrefix }) => {
   const anchorRef = useRef<HTMLAnchorElement>(null);
 
-  const { data: res } = useQuery(["file-content", name], () =>
-    getFileContent(path)
-  );
+  const { data: res } = useQuery(["file-content", name], () => getFile(path));
 
   // normally I shouldn't use the 'useEffect' hook but there was a weird
   // and unsolvable bug with the event driven way so I switched
   useEffect(() => {
-    if (type === "DIR" || !res) return;
+    if (type === "DIR" || !res || !anchorRef.current) return;
 
-    if (anchorRef.current) {
-      anchorRef.current.href = `data:${
-        res.headers["content-type"]
-      };charset=utf-8,${encodeURIComponent(res.data)}`;
+    anchorRef.current.href = `data:${
+      res.headers["content-type"]
+    };charset=utf-8,${encodeURIComponent(res.data)}`;
 
-      anchorRef.current.download = name;
-    }
+    anchorRef.current.download = name;
   }, [res, type, name]);
 
   return (
