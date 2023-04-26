@@ -50,7 +50,7 @@ const FileExplorer = () => {
         <p className="font-bold text-lg text-red-500">Loading Please Wait...</p>
       ) : (
         <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-6">
-          {/* just simulate native os go back directory but it just pop from stack */}
+          {/* just simulate native os go back directory but it just call cd into last previous paths item and pop it*/}
           {!!previousPaths.length && (
             <FileItem name=".." type="DIR" path=".." onClick={handleGoBack} />
           )}
