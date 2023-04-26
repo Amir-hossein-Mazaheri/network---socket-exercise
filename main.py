@@ -8,6 +8,8 @@ from src.PathScanner import PathScanner
 from src.Server import Server
 from src.Router import Router
 from src.HttpRequest import HttpRequest
+from src.utils import fill_nodes
+from src.constants import HOST, MAX_PORT_NUMBER, MIN_PORT_NUMBER, NODES
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
@@ -15,9 +17,6 @@ logging.basicConfig(
 
 load_dotenv()
 
-MIN_PORT_NUMBER = 5500
-MAX_PORT_NUMBER = 5600
-HOST = '127.0.0.1'
 
 port = None
 
@@ -89,34 +88,23 @@ def node_indicator(req: HttpRequest):
 
 @router.get('/nodes')
 def get_available_nodes(req: HttpRequest):
-    nodes = []
+    if len(NODES) > 0:
+        return NODES
 
-    for port in range(MIN_PORT_NUMBER, MAX_PORT_NUMBER + 1):
-        client_socket = socket()
+    NODES.clear()
 
-        try:
-            client_socket.settimeout(0.1)
-            client_socket.connect((HOST, port))
+    fill_nodes(NODES)
 
-            client_socket.send(b"GET /indicator HTTP/1.1\r\n\r\n")
+    return NODES
 
-            data = b""
 
-            while True:
-                d = client_socket.recv(4096)
-                data += d
+@router.get('/refresh-nodes')
+def refresh_nodes(req: HttpRequest):
+    NODES.clear()
 
-                if not d:
-                    break
+    fill_nodes(NODES)
 
-            if json.loads(data.decode().split("\r\n\r\n")[1]):
-                nodes.append(f"{HOST}:{port}")
-        except Exception as ex:
-            continue
-        finally:
-            client_socket.close()
-
-    return nodes
+    return NODES
 
 
 server = Server(router)
