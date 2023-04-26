@@ -2,6 +2,7 @@ class HttpRequest:
     __method: str
     __route: str
     __query: dict[str, str]
+    __params: dict[str, str] = {}
     __headers: dict[str, str]
     __body: any
 
@@ -23,6 +24,15 @@ class HttpRequest:
 
     def get_query_param(self, key: str):
         return self.__query.get(key)
+
+    def get_params(self):
+        return self.__params
+
+    def get_param(self, key: str):
+        return self.__params.get(key)
+
+    def add_to_params(self, key: str, value: str):
+        self.__params[key] = value
 
     def get_headers(self):
         return self.__headers

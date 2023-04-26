@@ -47,7 +47,28 @@ class Router:
 
     def matcher(self, req: HttpRequest, socket: socket):
         for route, method, callback in self.__routes:
-            if route == req.get_route() and method == req.get_method():
+            real_req_route = ""
+            dynamic_route = None
+            splitted_route = route.split(":")
+            splitted_req_route = req.get_route().split("/")
+
+            try:
+                dynamic_route = splitted_route[1]
+
+                real_req_route = "/".join(splitted_req_route[:-1])
+            except IndexError:
+                real_req_route = "/".join(splitted_req_route)
+
+            print('real req route: ', real_req_route)
+            print('dynamic route: ', dynamic_route)
+            print('splitted route: ', splitted_route)
+            print('splitted req route:', splitted_req_route)
+
+            if splitted_route[0].rstrip("/") == real_req_route.rstrip("/") and method == req.get_method():
+                if dynamic_route:
+                    req.add_to_params(
+                        dynamic_route, splitted_req_route[-1])
+
                 value = callback(req)
 
                 body = value
@@ -60,8 +81,17 @@ class Router:
                 if type(value) == bytes:
                     mime = Magic(mime=True)
 
+                    mime_type = mime.from_buffer(body)
+
+                    if dynamic_route:
+                        file_extension = splitted_req_route[-1].split(".")[-1]
+                        if file_extension == 'css':
+                            mime_type = "text/css"
+                        elif file_extension == 'js':
+                            mime_type = 'text/javascript'
+
                     socket.send(
-                        ("Content-Type:" + mime.from_buffer(body) + "\r\n").encode())
+                        ("Content-Type:" + mime_type + "\r\n").encode())
                 else:
                     socket.send(b"Content-Type:application/json\r\n")
 
