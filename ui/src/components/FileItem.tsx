@@ -1,30 +1,10 @@
-import React, { useEffect, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
-
 import { TFileItem } from "../api/getList";
-import getFile from "../api/getFile";
 
 interface FileItemProps extends TFileItem {
   onClick: (prefix: string) => void;
 }
 
 const FileItem: React.FC<FileItemProps> = ({ name, path, type, onClick }) => {
-  const anchorRef = useRef<HTMLAnchorElement>(null);
-
-  const { data: res } = useQuery(["file-content", name], () => getFile(path));
-
-  // normally I shouldn't use the 'useEffect' hook but there was a weird
-  // and unsolvable bug with the event driven way so I switched
-  useEffect(() => {
-    if (type === "DIR" || !res || !anchorRef.current) return;
-
-    anchorRef.current.href = `data:${
-      res.headers["content-type"]
-    };charset=utf-8,${encodeURIComponent(res.data)}`;
-
-    anchorRef.current.download = name;
-  }, [res, type, name]);
-
   return (
     <div
       onClick={() => type === "DIR" && onClick(path)}
@@ -61,7 +41,13 @@ const FileItem: React.FC<FileItemProps> = ({ name, path, type, onClick }) => {
           />
         </svg>
       )}
-      <a ref={anchorRef}>{name}</a>
+      {type === "FILE" ? (
+        <a href={`${localStorage.getItem("node")}/file?path=${path}`} download>
+          {name}
+        </a>
+      ) : (
+        <p>{name}</p>
+      )}
     </div>
   );
 };

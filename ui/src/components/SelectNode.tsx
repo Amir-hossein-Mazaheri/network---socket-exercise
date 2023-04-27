@@ -37,7 +37,7 @@ const SelectNode: React.FC<SelectNodeProps> = ({
     <div className="px-12 py-8 bg-gray-800 text-white min-h-screen w-screen">
       <div className="mb-12 flex items-center justify-between">
         <h1 className="font-bold text-3xl">
-          List of node you can select to get files from them:
+          List of nodes you can select to get files from them:
         </h1>
 
         <div className="flex items-center gap-8">
