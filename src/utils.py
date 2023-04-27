@@ -24,7 +24,7 @@ def fill_nodes(nodes: list):
                     break
 
             if json.loads(data.decode().split("\r\n\r\n")[1]):
-                nodes.append(f"{HOST}:{port}")
+                nodes.append(f"http://localhost:{port}")
         except Exception as ex:
             continue
         finally:

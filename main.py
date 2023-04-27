@@ -9,7 +9,7 @@ from src.Server import Server
 from src.Router import Router
 from src.HttpRequest import HttpRequest
 from src.utils import fill_nodes
-from src.constants import HOST, MAX_PORT_NUMBER, MIN_PORT_NUMBER, NODES
+from src.constants import MAX_PORT_NUMBER, MIN_PORT_NUMBER, NODES
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
