@@ -4,6 +4,7 @@ from typing import TypeAlias, Callable
 from socket import socket
 
 from src.HttpRequest import HttpRequest
+from src.types import RouterContext
 
 Route: TypeAlias = tuple[str, str, Callable]
 
@@ -46,6 +47,8 @@ class Router:
         return wrapper
 
     def matcher(self, req: HttpRequest, socket: socket):
+        context: RouterContext = {}
+
         for route, method, callback in self.__routes:
             real_req_route = ""
             dynamic_route = None
@@ -59,17 +62,12 @@ class Router:
             except IndexError:
                 real_req_route = "/".join(splitted_req_route)
 
-            print('real req route: ', real_req_route)
-            print('dynamic route: ', dynamic_route)
-            print('splitted route: ', splitted_route)
-            print('splitted req route:', splitted_req_route)
-
             if splitted_route[0].rstrip("/") == real_req_route.rstrip("/") and method == req.get_method():
                 if dynamic_route:
                     req.add_to_params(
                         dynamic_route, splitted_req_route[-1])
 
-                value = callback(req)
+                value = callback(req, context)
 
                 body = value
 
@@ -92,6 +90,10 @@ class Router:
 
                     socket.send(
                         ("Content-Type:" + mime_type + "\r\n").encode())
+
+                    if context.get("download"):
+                        socket.send(
+                            f"content-disposition: attachment; filename={context.get('filename')}\r\n".encode())
                 else:
                     socket.send(b"Content-Type:application/json\r\n")
 
