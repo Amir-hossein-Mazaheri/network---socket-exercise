@@ -14,10 +14,7 @@ const SelectNode: React.FC<SelectNodeProps> = ({
   setNode,
   setShowNodes,
 }) => {
-  const { data, isLoading, isFetching, refetch } = useQuery(
-    ["nodes"],
-    getNodes
-  );
+  const { data, isFetching, refetch } = useQuery(["nodes"], getNodes);
   const { refetch: refresh, isFetching: isRefreshing } = useQuery(
     ["refresh-nodes"],
     refreshNodes,
@@ -53,17 +50,17 @@ const SelectNode: React.FC<SelectNodeProps> = ({
             </div>
           )}
 
-          <div
-            aria-disabled={isRefreshing}
+          <button
+            disabled={isRefreshing || isFetching}
             className="cursor-pointer font-bold text-gray-900 bg-white rounded-full px-12 py-2"
             onClick={handleRefreshNodes}
           >
-            {isRefreshing ? "Loading..." : "Refresh"}
-          </div>
+            {isRefreshing || isFetching ? "Loading..." : "Refresh"}
+          </button>
         </div>
       </div>
 
-      {isFetching ? (
+      {isFetching || isRefreshing ? (
         <p>Loading list of available nodes...</p>
       ) : (
         <ul className="grid grid-cols-3 gap-6">
