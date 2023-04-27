@@ -5,7 +5,7 @@ from src.RequestHandler import RequestHandler
 from src.Router import Router
 
 
-class Server:
+class Node:
     __socket: socket
     __port: int
     __clients: list[RequestHandler] = []
@@ -29,14 +29,14 @@ class Server:
                 self.__port += 1
 
     def start(self):
-        logging.info(f"\n🚀 Server listening on port {self.__port}...\n")
+        logging.info(f"\n🚀 Node listening on port {self.__port}...\n")
         while True:
             try:
                 (client_socket, _) = self.__socket.accept()
                 self.__clients.append(RequestHandler(
                     client_socket, self.__route_handler))
             except KeyboardInterrupt:
-                logging.info("You successfully stopped the server.")
+                logging.info("You successfully stopped the node.")
                 break
             except Exception as ex:
                 logging.error(f"Something went wrong details:\n {ex}")
