@@ -5,7 +5,11 @@ import getList from "../api/getList";
 import FileItem from "./FileItem";
 import getPath from "../api/getPath";
 
-const FileExplorer = () => {
+interface FileExplorerProps {
+  setShowNodes: (showNodes: boolean) => void;
+}
+
+const FileExplorer: React.FC<FileExplorerProps> = ({ setShowNodes }) => {
   const [prefix, setPrefix] = useState("");
 
   // previous paths acts like a stack which holds all paths that user has visited
@@ -42,8 +46,15 @@ const FileExplorer = () => {
 
   return (
     <div className="px-12 py-8 bg-gray-800 text-white min-h-screen w-screen">
-      <div className="mb-12">
+      <div className="mb-12 flex items-center justify-between">
         <h1 className="font-bold text-3xl">File Explorer</h1>
+
+        <div
+          onClick={() => setShowNodes(true)}
+          className="cursor-pointer font-bold text-gray-900 bg-white rounded-full px-12 py-2"
+        >
+          Go Back to Node Selector
+        </div>
       </div>
 
       {isLoading ? (
