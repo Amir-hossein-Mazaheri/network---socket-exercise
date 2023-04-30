@@ -18,6 +18,12 @@ pnpm i
 pnpm build
 ```
 
+then you should install pipenv packages:
+
+```bash
+pipenv install
+```
+
 now you're ready to run the main.py:
 
 ```bash
