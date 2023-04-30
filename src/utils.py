@@ -9,7 +9,7 @@ def fill_nodes(nodes: list):
         client_socket = socket()
 
         try:
-            client_socket.settimeout(0.1)
+            client_socket.settimeout(0.01)
             client_socket.connect((HOST, port))
 
             client_socket.send(b"GET /indicator HTTP/1.1\r\n\r\n")
