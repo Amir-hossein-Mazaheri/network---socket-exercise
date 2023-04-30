@@ -47,6 +47,9 @@ class Router:
         return wrapper
 
     def matcher(self, req: HttpRequest, socket: socket):
+        # it is just a context for passing additional info to the mather
+        # route function return value could be transformed into something that
+        # we can delete the context but this way is cleaner
         context: RouterContext = {}
 
         for route, method, callback in self.__routes:
