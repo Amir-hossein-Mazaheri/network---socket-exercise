@@ -4,9 +4,6 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-python-dotenv = "*"
-python-magic = "*"
-python-magic-bin = "*"
 
 [dev-packages]
 autopep8 = "*"
