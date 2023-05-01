@@ -1,20 +1,16 @@
 import os
 import logging
-from dotenv import load_dotenv
 
 from src.PathScanner import PathScanner
 from src.Node import Node
 from src.Router import Router
 from src.HttpRequest import HttpRequest
-from src.utils import fill_nodes
+from src.utils import fill_nodes, mime_detector
 from src.constants import MAX_PORT_NUMBER, MIN_PORT_NUMBER, NODES
 from src.types import RouterContext
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
-
-
-load_dotenv()
 
 
 port = None
@@ -38,6 +34,7 @@ def index(req: HttpRequest, context: RouterContext):
     context["download"] = False
 
     with open(index_page_path, 'rb') as file:
+        context['mime'] = mime_detector(file.name)
         return file.read()
 
 
@@ -49,6 +46,7 @@ def assets(req: HttpRequest, context: RouterContext):
     context["download"] = False
 
     with open(asset_path, 'rb') as file:
+        context['mime'] = mime_detector(file.name)
         return file.read()
 
 
@@ -83,6 +81,7 @@ def send_file(req: HttpRequest, context: RouterContext):
     context["download"] = True
 
     with open(path, 'rb') as file:
+        context['mime'] = mime_detector(file.name)
         context["filename"] = file.name
 
         return file.read()

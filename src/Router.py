@@ -1,5 +1,4 @@
 import json
-from magic import Magic
 from typing import TypeAlias, Callable
 from socket import socket
 
@@ -80,19 +79,8 @@ class Router:
                 socket.send(b"HTTP/1.1 200 OK\r\n")
 
                 if type(value) == bytes:
-                    mime = Magic(mime=True)
-
-                    mime_type = mime.from_buffer(body)
-
-                    if dynamic_route:
-                        file_extension = splitted_req_route[-1].split(".")[-1]
-                        if file_extension == 'css':
-                            mime_type = "text/css"
-                        elif file_extension == 'js':
-                            mime_type = 'text/javascript'
-
                     socket.send(
-                        ("Content-Type:" + mime_type + "\r\n").encode())
+                        ("Content-Type:" + context["mime"] + "\r\n").encode())
 
                     if context.get("download"):
                         socket.send(

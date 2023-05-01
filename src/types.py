@@ -16,3 +16,4 @@ class PathItem(TypedDict):
 class RouterContext(TypedDict):
     filename: str
     download: bool
+    mime: str
