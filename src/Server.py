@@ -5,15 +5,18 @@ from src.RequestHandler import RequestHandler
 from src.Router import Router
 
 
-class Node:
+class Server:
     __socket: socket
     __port: int
     __clients: list[RequestHandler] = []
-    __route_handler: Router
+    __router: Router
 
-    def __init__(self, route_handler: Router) -> None:
+    def __init__(self, cors=True) -> None:
         self.__socket = socket(AF_INET, SOCK_STREAM)
-        self.__route_handler = route_handler
+        self.__router = Router(cors)
+
+    def router(self) -> Router:
+        return self.__router
 
     def listen(self, port: int) -> None:
         self.__port = port
@@ -34,7 +37,7 @@ class Node:
             try:
                 (client_socket, _) = self.__socket.accept()
                 self.__clients.append(RequestHandler(
-                    client_socket, self.__route_handler))
+                    client_socket, self.__router))
             except KeyboardInterrupt:
                 logging.info("You successfully stopped the node.")
                 break
