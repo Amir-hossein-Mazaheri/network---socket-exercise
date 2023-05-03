@@ -54,7 +54,7 @@ def get_dir_list(req: HttpRequest, res: HttpResponse):
     real_path = path
 
     if prefix:
-        real_path = prefix[0]
+        real_path = prefix
 
     scanner = PathScanner(real_path)
 
@@ -72,8 +72,6 @@ def send_file(req: HttpRequest, res: HttpResponse):
 
     if not path:
         return {"message": "should feed the url with path query param"}
-
-    path = path[0]
 
     with open(path, 'rb') as file:
         mime = mime_detector(file.name)

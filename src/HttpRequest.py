@@ -2,16 +2,18 @@ class HttpRequest:
     __method: str
     __route: str
     __headers: dict[str, str]
-    __query: dict[str, str]
+    __query: dict[str, list[str] | str] = {}
     __body: any
     __params: dict[str, str] = {}
 
-    def __init__(self, method: str, route: str, query: dict[str, str], headers: dict[str, str], body: any) -> None:
+    def __init__(self, method: str, route: str, query: dict[str, list[str]], headers: dict[str, str], body: any) -> None:
         self.__method = method
         self.__route = route
-        self.__query = query
         self.__headers = headers
         self.__body = body
+
+        for key, value in query.items():
+            self.__query[key] = value[0] if len(value) == 1 else value
 
     def get_method(self):
         return self.__method
