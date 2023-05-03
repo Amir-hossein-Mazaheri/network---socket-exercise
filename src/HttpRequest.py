@@ -1,10 +1,10 @@
 class HttpRequest:
     __method: str
     __route: str
-    __query: dict[str, str]
-    __params: dict[str, str] = {}
     __headers: dict[str, str]
+    __query: dict[str, str]
     __body: any
+    __params: dict[str, str] = {}
 
     def __init__(self, method: str, route: str, query: dict[str, str], headers: dict[str, str], body: any) -> None:
         self.__method = method
@@ -31,7 +31,7 @@ class HttpRequest:
     def get_param(self, key: str):
         return self.__params.get(key)
 
-    def add_to_params(self, key: str, value: str):
+    def append_params(self, key: str, value: str):
         self.__params[key] = value
 
     def get_headers(self):
