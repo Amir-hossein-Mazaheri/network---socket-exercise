@@ -3,7 +3,8 @@ from typing import TypeAlias, Callable
 from socket import socket
 
 from src.HttpRequest import HttpRequest
-from src.types import RouterContext
+from src.HttpResponse import HttpResponse
+from src.HttpError import HttpError
 
 Route: TypeAlias = tuple[str, str, Callable]
 
@@ -11,9 +12,11 @@ Route: TypeAlias = tuple[str, str, Callable]
 class Router:
     __routes: list[Route] = []
     __not_found = None
+    __cors: bool
 
-    def __init__(self) -> None:
+    def __init__(self, cors) -> None:
         self.__not_found = lambda req: {"message": "invalid request"}
+        self.__cors = cors
 
     def get(self, route: str):
         def wrapper(func):
@@ -39,67 +42,71 @@ class Router:
 
         return wrapper
 
-    def not_found(self):
-        def wrapper(func):
-            self.__not_found = func
-
-        return wrapper
+    def not_found(self, func):
+        self.__not_found = func
 
     def matcher(self, req: HttpRequest, socket: socket):
-        # it is just a context for passing additional info to the mather
-        # route function return value could be transformed into something that
-        # we can delete the context but this way is cleaner
-        context: RouterContext = {}
+        try:
+            for route, method, callback in self.__routes:
+                real_req_route = ""
+                dynamic_route = None
+                splitted_route = route.split(":")
+                splitted_req_route = req.get_route().split("/")
 
-        for route, method, callback in self.__routes:
-            real_req_route = ""
-            dynamic_route = None
-            splitted_route = route.split(":")
-            splitted_req_route = req.get_route().split("/")
+                try:
+                    dynamic_route = splitted_route[1]
 
-            try:
-                dynamic_route = splitted_route[1]
+                    real_req_route = "/".join(splitted_req_route[:-1])
+                except IndexError:
+                    real_req_route = "/".join(splitted_req_route)
 
-                real_req_route = "/".join(splitted_req_route[:-1])
-            except IndexError:
-                real_req_route = "/".join(splitted_req_route)
+                if splitted_route[0].rstrip("/") == real_req_route.rstrip("/") and method == req.get_method():
+                    if dynamic_route:
+                        req.append_params(
+                            dynamic_route, splitted_req_route[-1])
 
-            if splitted_route[0].rstrip("/") == real_req_route.rstrip("/") and method == req.get_method():
-                if dynamic_route:
-                    req.add_to_params(
-                        dynamic_route, splitted_req_route[-1])
+                    res = HttpResponse()
+                    body = callback(req, res)
 
-                value = callback(req, context)
+                    try:
+                        body = json.dumps(body).encode()
+                    except (TypeError, OverflowError):
+                        pass
 
-                body = value
+                    socket.send(f"HTTP/1.1 {res.get_status()} OK\r\n".encode())
 
-                if type(value) != bytes:
-                    body = json.dumps(value).encode()
+                    for key, value in res.get_headers().items():
+                        socket.send(f"{key}: {value}\r\n".encode())
 
-                socket.send(b"HTTP/1.1 200 OK\r\n")
+                    if self.__cors:
+                        socket.send(b"Access-Control-Allow-Origin: *\r\n")
 
-                if type(value) == bytes:
-                    socket.send(
-                        ("Content-Type:" + context["mime"] + "\r\n").encode())
+                    socket.send(b"\r\n\r\n")
+                    socket.send(body)
 
-                    if context.get("download"):
-                        socket.send(
-                            f"content-disposition: attachment; filename={context.get('filename')}\r\n".encode())
-                else:
-                    socket.send(b"Content-Type:application/json\r\n")
+                    socket.close()
 
-                socket.send(b"Access-Control-Allow-Origin: *\r\n\r\n")
-                socket.send(body)
+                    return
 
-                socket.close()
+            res = HttpResponse()
+            value = self.__not_found(req, res)
 
-                return
+            body = json.dumps(value).encode()
 
-        value = self.__not_found(req)
+            socket.send(b"HTTP/1.1 404 Not Found\n\n")
+            socket.send(body)
 
-        body = json.dumps(value).encode()
+            socket.close()
 
-        socket.send(b"HTTP/1.1 200 OK\n\n")
-        socket.send(body)
+        except HttpError as e:
+            socket.send(f"HTTP/1.1 {e.status} {e.msg}\r\n\r\n".encode())
 
-        socket.close()
+            body = {
+                "status": e.status,
+                "message": e.msg,
+                "detail": e.detail
+            }
+
+            socket.send(json.dumps(body).encode())
+
+            socket.close()

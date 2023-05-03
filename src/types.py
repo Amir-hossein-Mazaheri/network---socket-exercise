@@ -11,9 +11,3 @@ class PathItem(TypedDict):
     name: str
     path: str
     type: PathItemType
-
-
-class RouterContext(TypedDict):
-    filename: str
-    download: bool
-    mime: str
