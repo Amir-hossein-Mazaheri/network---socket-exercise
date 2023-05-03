@@ -71,5 +71,12 @@ class RequestHandler:
             self.__route_handler.matcher(req, self.__socket)
 
         except Exception as ex:
-            logging.error(
-                f"Something went wrong while trying to handle http request:\n {ex}")
+            msg = f"Something went wrong while trying to handle http request:\n {ex}"
+
+            logging.error(msg)
+
+            socket = self.__socket
+
+            socket.send(b"HTTP/1.1 500 Server Internal Error\r\n\r\n")
+            socket.send(msg.encode())
+            socket.close()
